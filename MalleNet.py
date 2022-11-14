@@ -42,7 +42,7 @@ class HalfInstanceNorm(nn.Module):
 #     x = tf.concat([inputs_1, inputs_2], -1)
 #     return x
 
-class Identity(nn.Module):
+class Identity(nn.Module):    #@HRn
   """
       ...
 
@@ -55,29 +55,24 @@ class Identity(nn.Module):
     return output
 
 
+# class Identity(tf.keras.Model):
+#   '''identity
+#   '''
+#   def __init__(self):
+#     super().__init__()
 
+#   def call(self, inputs):
+#     return tf.identity(inputs)
 
-
-
-
-class Identity(tf.keras.Model):
-  '''identity
-  '''
-  def __init__(self):
-    super().__init__()
-
-  def call(self, inputs):
-    return tf.identity(inputs)
-
-def get_norm(norm_type):
+def get_norm(norm_type):    #@HRn
   if norm_type == 'bn':
-    return tf.keras.layers.BatchNormalization
+    return nn.BatchNorm2d
   elif norm_type == 'syncbn':
-    return tf.keras.layers.experimental.SyncBatchNormalization
+    return nn.SyncBatchNorm
   elif norm_type == 'hi':
-    return HalfInstance
+    return HalfInstanceNorm
   elif norm_type == 'in':
-    return tfa_layers.InstanceNormalization
+    return nn.InstanceNorm2d
   elif norm_type == 'none':
     return Identity
   else:
@@ -119,6 +114,13 @@ class ResConvBlock(tf.keras.Model):
     output = x + self.convblock(x, training=training)
     return output
 
+def space_to_depth(input):   #@HRn
+
+def space_to_depth(x, block_size):
+    n, c, h, w = x.size()
+    unfolded_x = torch.nn.functional.unfold(x, block_size, stride=block_size)
+    return unfolded_x.view(n, c * block_size ** 2, h // block_size, w // block_size)
+
 
 class ShufflePyramidDecom(tf.keras.Model):
   def __init__(self, num_high=3):
@@ -140,6 +142,13 @@ class ShufflePyramidDecom(tf.keras.Model):
       current = down
     # pyr.append(current)
     return pyr
+
+
+class Model_one(nn.Module):
+  def __init__(self , channel = 64 , norm_type = "syncbn " , depth = 3):
+    super().__init()
+    self.channel = channel
+    self.shuffle_decom = ShufflePyramidDecom(3)
 
 
 
