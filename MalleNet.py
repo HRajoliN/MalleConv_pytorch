@@ -113,6 +113,33 @@ class ResConvBlock(tf.keras.Model):
     x = inputs
     output = x + self.convblock(x, training=training)
     return output
+#------------- space to depth equivalent in pytorch ---------------
+class space_to_depth_pytorch(object):
+  def __init__(self , kernel_size = (2,2)):
+    super().__init__()
+    self._to_channel_wise_featMap = _to_channel_wise_featMap
+    self.
+
+def _to_channel_wise_featMap(self , featMap):
+    """ this function takes normal feature map [batch_size , C , H , W] and transforms it to new feature map that each row...
+        ...represents feature's vector of a pixel of original feature map. [batch_size , W x H , C]
+
+            arguments:
+                        featMap: this is the feature map with size [batch_size , C , H , W]
+
+                return:  
+                        features: this is the feature map with size [batch_size , W x H , C]
+    """
+    batch_size = featMap.size(0)
+    # change order of dimension to catch channelwise feature vectors
+    feat_channelWise = featMap.permute(0,2,3,1).contiguous()
+    # create a matrix of channelwise features with dimensions of [bathc_size , W_feat x H_feat , 256] for each feature maps
+    features_vec_len = featMap.size(1)    # here is 256
+    features = feat_channelWise.view(batch_size , -1 , features_vec_len)
+    
+    return features
+  
+
 
 def space_to_depth(input):   #@HRn
 
